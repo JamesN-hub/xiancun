@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Inter:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-hand: "Patrick Hand", cursive;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  
+  --color-warm-bg: #fdfaf5;
+  --color-warm-accent: #f97316;
+  --color-warm-card: #ffffff;
+  --color-warm-border: #e7e5e4;
+}
+
+@layer base {
+  body {
+    @apply bg-warm-bg font-hand text-slate-800;
+  }
+}
+
+@layer components {
+  .hand-border {
+    border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+    border: 2px solid theme('colors.slate.800');
+  }
+  
+  .hand-card {
+    @apply bg-white p-4 shadow-sm;
+    border-radius: 12px 24px 12px 24px/24px 12px 24px 12px;
+    border: 2px solid theme('colors.slate.200');
+  }
+
+  .hand-button {
+    @apply px-4 py-2 font-bold transition-all active:scale-95;
+    border-radius: 8px 16px 8px 16px/16px 8px 16px 8px;
+    border: 2px solid currentColor;
+  }
+}

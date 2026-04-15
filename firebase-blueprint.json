@@ -1,0 +1,41 @@
+{
+  "entities": {
+    "Family": {
+      "title": "Family",
+      "description": "A group of users sharing a fridge inventory.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the family group." },
+        "ownerUid": { "type": "string", "description": "UID of the family creator." },
+        "members": { "type": "array", "items": { "type": "string" }, "description": "List of member UIDs." }
+      },
+      "required": ["name", "ownerUid", "members"]
+    },
+    "Item": {
+      "title": "Inventory Item",
+      "description": "A food item stored in the fridge or freezer.",
+      "type": "object",
+      "properties": {
+        "familyId": { "type": "string", "description": "ID of the family this item belongs to." },
+        "name": { "type": "string", "description": "Name of the food item." },
+        "category": { "type": "string", "enum": ["fridge", "freezer"], "description": "Storage location." },
+        "purchaseDate": { "type": "string", "format": "date-time", "description": "When the item was bought." },
+        "expiryDays": { "type": "integer", "description": "Days until expiration from purchase date." },
+        "addedBy": { "type": "string", "description": "UID of the user who added the item." },
+        "addedByName": { "type": "string", "description": "Display name of the user who added the item." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp of creation." }
+      },
+      "required": ["familyId", "name", "category", "purchaseDate", "expiryDays", "addedBy", "addedByName", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/families/{familyId}": {
+      "schema": "Family",
+      "description": "Family groups."
+    },
+    "/items/{itemId}": {
+      "schema": "Item",
+      "description": "Inventory items shared within a family."
+    }
+  }
+}
