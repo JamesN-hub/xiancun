@@ -68,6 +68,7 @@ service cloud.firestore {
              data.familyId is string &&
              data.addedBy == request.auth.uid &&
              data.addedByName is string && data.addedByName.size() > 0 && data.addedByName.size() < 100 &&
+             (!('icon' in data) || (data.icon is string && data.icon.size() <= 10)) &&
              data.createdAt is string;
     }
 

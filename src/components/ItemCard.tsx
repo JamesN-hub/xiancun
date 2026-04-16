@@ -23,7 +23,11 @@ export function ItemCard({ item, onDelete }: { item: FoodItem; onDelete: () => v
           "w-12 h-12 rounded-xl flex items-center justify-center border-2",
           isExpired ? "bg-rose-100 text-rose-600 border-rose-200" : isExpiringSoon ? "bg-amber-100 text-amber-600 border-amber-200" : "bg-emerald-50 text-emerald-600 border-emerald-100"
         )} style={{ borderRadius: '12px 24px 12px 24px/24px 12px 24px 12px' }}>
-          {item.category === 'fridge' ? <Refrigerator className="w-6 h-6" /> : <Snowflake className="w-6 h-6" />}
+          {item.icon ? (
+            <span className="text-2xl">{item.icon}</span>
+          ) : (
+            item.category === 'fridge' ? <Refrigerator className="w-6 h-6" /> : <Snowflake className="w-6 h-6" />
+          )}
         </div>
         <div className="space-y-0.5">
           <h3 className="font-bold text-slate-900 font-hand text-lg">{item.name}</h3>
@@ -45,6 +49,23 @@ export function ItemCard({ item, onDelete }: { item: FoodItem; onDelete: () => v
       <Button onClick={onDelete} variant="danger" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
         <Trash2 className="w-4 h-4" />
       </Button>
+    </Card>
+  );
+}
+
+export function SkeletonItemCard() {
+  return (
+    <Card className="p-4 flex items-center justify-between border-2 border-slate-200">
+      <div className="flex items-center gap-4 w-full">
+        <div className="w-12 h-12 rounded-xl bg-slate-200 animate-pulse" style={{ borderRadius: '12px 24px 12px 24px/24px 12px 24px 12px' }} />
+        <div className="space-y-2 flex-1">
+          <div className="h-5 bg-slate-200 rounded animate-pulse w-1/3" />
+          <div className="flex gap-2">
+            <div className="h-4 bg-slate-200 rounded animate-pulse w-16" />
+            <div className="h-4 bg-slate-200 rounded animate-pulse w-24" />
+          </div>
+        </div>
+      </div>
     </Card>
   );
 }

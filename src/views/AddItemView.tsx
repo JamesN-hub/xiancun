@@ -16,6 +16,7 @@ export function AddItemView({ onAdd, onCancel, hasApiKey }: {
     purchaseDate: format(new Date(), 'yyyy-MM-dd'),
     expiryDays: 7
   });
+  const [icon, setIcon] = useState<string>('');
 
   const [error, setError] = useState<string | null>(null);
 
@@ -25,8 +26,10 @@ export function AddItemView({ onAdd, onCancel, hasApiKey }: {
       return;
     }
     setError(null);
-    onAdd(form);
+    onAdd({ ...form, icon });
   };
+
+  const commonEmojis = ['🍎', '🥩', '🥦', '🥛', '🍞', '🥚', '🐟', '🧀', '🥬', '🍉', '🍗', '🥕'];
 
   return (
     <div className="space-y-6">
@@ -69,6 +72,35 @@ export function AddItemView({ onAdd, onCancel, hasApiKey }: {
       </Card>
 
       <div className="space-y-4">
+        <div className="space-y-1.5">
+          <label className="text-sm font-bold text-slate-700 ml-1 font-hand">選擇圖標 (選填)</label>
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            <button
+              onClick={() => setIcon('')}
+              className={cn(
+                "w-10 h-10 shrink-0 rounded-xl flex items-center justify-center text-sm transition-all border-2",
+                icon === '' ? "bg-emerald-50 border-emerald-300 text-emerald-700" : "bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100"
+              )}
+              style={{ borderRadius: '8px 12px 8px 12px/12px 8px 12px 8px' }}
+            >
+              無
+            </button>
+            {commonEmojis.map(emoji => (
+              <button
+                key={emoji}
+                onClick={() => setIcon(emoji)}
+                className={cn(
+                  "w-10 h-10 shrink-0 rounded-xl flex items-center justify-center text-xl transition-all border-2",
+                  icon === emoji ? "bg-emerald-50 border-emerald-300 scale-110" : "bg-slate-50 border-slate-200 hover:bg-slate-100"
+                )}
+                style={{ borderRadius: '8px 12px 8px 12px/12px 8px 12px 8px' }}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <Input label="食材名稱" placeholder="例如：牛奶、雞蛋..." value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
         
         <div className="grid grid-cols-2 gap-4">

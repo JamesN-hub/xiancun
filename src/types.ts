@@ -8,6 +8,7 @@ export interface FoodItem {
   addedBy: string;
   addedByName: string;
   createdAt: string;
+  icon?: string;
 }
 
 export interface Family {

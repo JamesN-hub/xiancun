@@ -39,8 +39,8 @@ import { format, differenceInDays, addDays, isPast, isToday, parseISO } from 'da
 import { auth, db, loginWithGoogle, logout, handleFirestoreError, OperationType } from './firebase';
 import { cn } from './lib/utils';
 import { FoodItem, Family } from './types';
-import { Button, Card, Input } from './components/ui';
-import { ItemCard } from './components/ItemCard';
+import { Button, Card, Input, ConfirmModal } from './components/ui';
+import { ItemCard, SkeletonItemCard } from './components/ItemCard';
 import { LoginView } from './views/LoginView';
 import { OnboardingView } from './views/OnboardingView';
 import { AddItemView } from './views/AddItemView';
@@ -116,6 +116,7 @@ function App() {
   const [view, setView] = useState<'dashboard' | 'add' | 'settings'>('dashboard');
   const [apiKey, setApiKey] = useState<string>(localStorage.getItem('FRESH_TRACK_AI_KEY') || '');
   const [sortBy, setSortBy] = useState<'expiry' | 'purchase' | 'name'>('expiry');
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
   // Auth Listener
   useEffect(() => {
@@ -247,6 +248,12 @@ function App() {
     }
   };
 
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+    await handleDeleteItem(itemToDelete);
+    setItemToDelete(null);
+  };
+
   const saveApiKey = (key: string) => {
     setApiKey(key);
     localStorage.setItem('FRESH_TRACK_AI_KEY', key);
@@ -267,14 +274,40 @@ function App() {
     });
   }, [items, activeTab, sortBy]);
 
+  const stats = useMemo(() => {
+    let expiring = 0;
+    let fridge = 0;
+    let freezer = 0;
+    const today = new Date();
+    items.forEach(item => {
+      if (item.category === 'fridge') fridge++;
+      if (item.category === 'freezer') freezer++;
+      const expiryDate = addDays(parseISO(item.purchaseDate), item.expiryDays);
+      const daysLeft = differenceInDays(expiryDate, today);
+      if (daysLeft <= 3 || (isPast(expiryDate) && !isToday(expiryDate))) {
+        expiring++;
+      }
+    });
+    return { expiring, fridge, freezer };
+  }, [items]);
+
   if (loading) return (
-    <div className="min-h-screen bg-warm-bg flex items-center justify-center">
-      <div className="animate-pulse flex flex-col items-center gap-4">
-        <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center" style={{ borderRadius: '24px 48px 24px 48px/48px 24px 48px 24px' }}>
-          <Refrigerator className="w-8 h-8 text-emerald-600" />
+    <div className="min-h-screen bg-warm-bg text-slate-800 font-hand pb-24">
+      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b-2 border-slate-200 px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-10 h-10 bg-slate-200 rounded-xl animate-pulse" style={{ borderRadius: '12px 24px 12px 24px/24px 12px 24px 12px' }} />
+          <div className="w-16 h-6 bg-slate-200 rounded animate-pulse" />
         </div>
-        <p className="text-slate-500 font-bold font-hand">載入中...</p>
-      </div>
+        <div className="w-8 h-8 bg-slate-200 rounded-full animate-pulse" />
+      </header>
+      <main className="max-w-md mx-auto px-6 pt-6 space-y-6">
+        <div className="h-12 bg-slate-200 rounded-xl animate-pulse" style={{ borderRadius: '12px 24px 12px 24px/24px 12px 24px 12px' }} />
+        <div className="space-y-3">
+          <SkeletonItemCard />
+          <SkeletonItemCard />
+          <SkeletonItemCard />
+        </div>
+      </main>
     </div>
   );
 
@@ -310,6 +343,25 @@ function App() {
               exit={{ opacity: 0, y: -10 }}
               className="space-y-6"
             >
+              {/* Summary Bento Box */}
+              <div className="grid grid-cols-3 gap-3">
+                <Card className="p-3 bg-rose-50 border-rose-200 flex flex-col items-center justify-center text-center shadow-sm">
+                  <AlertTriangle className="w-5 h-5 text-rose-500 mb-1" />
+                  <span className="text-2xl font-bold text-rose-600">{stats.expiring}</span>
+                  <span className="text-[10px] text-rose-600 font-bold mt-0.5">快過期/已過期</span>
+                </Card>
+                <Card className="p-3 bg-emerald-50 border-emerald-200 flex flex-col items-center justify-center text-center shadow-sm">
+                  <Refrigerator className="w-5 h-5 text-emerald-500 mb-1" />
+                  <span className="text-2xl font-bold text-emerald-600">{stats.fridge}</span>
+                  <span className="text-[10px] text-emerald-600 font-bold mt-0.5">冷藏中</span>
+                </Card>
+                <Card className="p-3 bg-blue-50 border-blue-200 flex flex-col items-center justify-center text-center shadow-sm">
+                  <Snowflake className="w-5 h-5 text-blue-500 mb-1" />
+                  <span className="text-2xl font-bold text-blue-600">{stats.freezer}</span>
+                  <span className="text-[10px] text-blue-600 font-bold mt-0.5">冷凍中</span>
+                </Card>
+              </div>
+
               {/* Tabs and Sort */}
               <div className="space-y-4">
                 <div className="flex p-1 bg-slate-100 rounded-xl border-2 border-slate-200" style={{ borderRadius: '12px 24px 12px 24px/24px 12px 24px 12px' }}>
@@ -360,7 +412,7 @@ function App() {
                   </div>
                 ) : (
                   displayedItems.map(item => (
-                    <ItemCard key={item.id} item={item} onDelete={() => handleDeleteItem(item.id)} />
+                    <ItemCard key={item.id} item={item} onDelete={() => setItemToDelete(item.id)} />
                   ))
                 )}
               </div>
@@ -412,6 +464,16 @@ function App() {
           <SettingsIcon className="w-6 h-6" />
         </button>
       </nav>
+
+      <ConfirmModal
+        isOpen={!!itemToDelete}
+        title="確定要刪除嗎？"
+        description="刪除後將無法恢復，確定要把這個食材從冰箱移除嗎？"
+        onConfirm={confirmDelete}
+        onCancel={() => setItemToDelete(null)}
+        confirmText="確定刪除"
+        confirmVariant="danger"
+      />
     </div>
   );
 }

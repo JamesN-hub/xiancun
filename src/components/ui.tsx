@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 
 export const Button = ({ 
@@ -54,3 +55,60 @@ export const Input = ({ label, ...props }: React.InputHTMLAttributes<HTMLInputEl
     />
   </div>
 );
+
+export const ConfirmModal = ({ 
+  isOpen, 
+  title, 
+  description, 
+  onConfirm, 
+  onCancel, 
+  confirmText = "確認", 
+  cancelText = "取消",
+  confirmVariant = "primary"
+}: { 
+  isOpen: boolean; 
+  title: string; 
+  description: string; 
+  onConfirm: () => void; 
+  onCancel: () => void;
+  confirmText?: string;
+  cancelText?: string;
+  confirmVariant?: 'primary' | 'danger';
+}) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50"
+            onClick={onCancel}
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20, x: '-50%', left: '50%', top: '50%', translateY: '-50%' }}
+            animate={{ opacity: 1, scale: 1, y: 0, x: '-50%', left: '50%', top: '50%', translateY: '-50%' }}
+            exit={{ opacity: 0, scale: 0.95, y: 20, x: '-50%', left: '50%', top: '50%', translateY: '-50%' }}
+            className="fixed z-50 w-full max-w-sm px-6"
+          >
+            <Card className="bg-white p-6 space-y-6 shadow-2xl border-2 border-slate-200">
+              <div className="space-y-2 text-center">
+                <h3 className="text-2xl font-bold text-slate-900 font-hand">{title}</h3>
+                <p className="text-slate-500 font-hand leading-relaxed">{description}</p>
+              </div>
+              <div className="flex gap-3">
+                <Button onClick={onCancel} variant="secondary" className="flex-1 py-3">
+                  {cancelText}
+                </Button>
+                <Button onClick={onConfirm} variant={confirmVariant} className="flex-1 py-3">
+                  {confirmText}
+                </Button>
+              </div>
+            </Card>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};

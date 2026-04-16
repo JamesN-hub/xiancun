@@ -23,6 +23,7 @@
         "expiryDays": { "type": "integer", "description": "Days until expiration from purchase date." },
         "addedBy": { "type": "string", "description": "UID of the user who added the item." },
         "addedByName": { "type": "string", "description": "Display name of the user who added the item." },
+        "icon": { "type": "string", "description": "Optional emoji icon for the item." },
         "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp of creation." }
       },
       "required": ["familyId", "name", "category", "purchaseDate", "expiryDays", "addedBy", "addedByName", "createdAt"]
