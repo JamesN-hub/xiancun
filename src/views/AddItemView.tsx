@@ -1,32 +1,38 @@
-import { useState } from 'react';
-import { Camera, AlertCircle } from 'lucide-react';
-import { format } from 'date-fns';
-import { motion } from 'framer-motion';
+import { useState, useMemo } from 'react';
+import { Camera, AlertCircle, CalendarDays } from 'lucide-react';
+import { format, addDays, differenceInDays, parseISO } from 'date-fns';
+import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
 import { Button, Card, Input } from '../components/ui';
 
-export function AddItemView({ onAdd, onCancel, hasApiKey }: { 
-  onAdd: (item: any) => void; 
+export function AddItemView({ onAdd, onCancel, hasApiKey }: {
+  onAdd: (item: any) => void;
   onCancel: () => void;
   hasApiKey: boolean;
 }) {
+  const today = format(new Date(), 'yyyy-MM-dd');
+
   const [form, setForm] = useState({
     name: '',
     category: 'fridge' as 'fridge' | 'freezer',
-    purchaseDate: format(new Date(), 'yyyy-MM-dd'),
-    expiryDays: 7
+    purchaseDate: today,
+    expiryDate: format(addDays(new Date(), 7), 'yyyy-MM-dd'),
   });
   const [icon, setIcon] = useState<string>('');
-
   const [error, setError] = useState<string | null>(null);
 
+  const expiryDays = useMemo(
+    () => differenceInDays(parseISO(form.expiryDate), parseISO(form.purchaseDate)),
+    [form.expiryDate, form.purchaseDate]
+  );
+
   const handleSubmit = () => {
-    if (form.expiryDays < 0) {
-      setError('天數不可為負數');
+    if (expiryDays < 0) {
+      setError('有效期限不能早於購入日期');
       return;
     }
     setError(null);
-    onAdd({ ...form, icon });
+    onAdd({ name: form.name, category: form.category, purchaseDate: form.purchaseDate, expiryDays, icon });
   };
 
   const commonEmojis = ['🍎', '🥩', '🥦', '🥛', '🍞', '🥚', '🐟', '🧀', '🥬', '🍉', '🍗', '🥕'];
@@ -39,7 +45,7 @@ export function AddItemView({ onAdd, onCancel, hasApiKey }: {
       </div>
 
       {error && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="p-3 bg-rose-50 border border-rose-100 text-rose-600 text-sm rounded-xl flex items-center gap-2"
@@ -101,42 +107,63 @@ export function AddItemView({ onAdd, onCancel, hasApiKey }: {
           </div>
         </div>
 
-        <Input label="食材名稱" placeholder="例如：牛奶、雞蛋..." value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
-        
+        <Input
+          label="食材名稱"
+          placeholder="例如：牛奶、雞蛋..."
+          value={form.name}
+          onChange={e => setForm({ ...form, name: e.target.value })}
+        />
+
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <label className="text-sm font-bold text-slate-700 ml-1 font-hand">存放位置</label>
             <div className="flex p-1 bg-slate-100 rounded-xl border-2 border-slate-200" style={{ borderRadius: '8px 16px 8px 16px/16px 8px 16px 8px' }}>
-              <button 
-                onClick={() => setForm({...form, category: 'fridge'})}
+              <button
+                onClick={() => setForm({ ...form, category: 'fridge' })}
                 className={cn("flex-1 py-2 rounded-lg text-lg font-bold transition-all font-hand", form.category === 'fridge' ? "bg-white shadow-sm text-emerald-600 border-2 border-emerald-100" : "text-slate-500")}
                 style={{ borderRadius: '6px 12px 6px 12px/12px 6px 12px 6px' }}
               >冷藏</button>
-              <button 
-                onClick={() => setForm({...form, category: 'freezer'})}
+              <button
+                onClick={() => setForm({ ...form, category: 'freezer' })}
                 className={cn("flex-1 py-2 rounded-lg text-lg font-bold transition-all font-hand", form.category === 'freezer' ? "bg-white shadow-sm text-blue-600 border-2 border-blue-100" : "text-slate-500")}
                 style={{ borderRadius: '6px 12px 6px 12px/12px 6px 12px 6px' }}
               >冷凍</button>
             </div>
           </div>
-          <Input 
-            label="過期天數" 
-            type="number" 
-            value={form.expiryDays} 
-            onChange={e => {
-              const val = parseInt(e.target.value) || 0;
-              setForm({...form, expiryDays: val});
-              if (val >= 0) setError(null);
-            }} 
-          />
+
+          {/* 自動計算保存天數 */}
+          <div className="space-y-1.5">
+            <label className="text-sm font-bold text-slate-700 ml-1 font-hand">保存期限</label>
+            <div className={cn(
+              "flex items-center justify-center gap-1.5 h-[46px] rounded-xl border-2 font-bold font-hand text-lg",
+              expiryDays < 0 ? "bg-rose-50 border-rose-200 text-rose-600" :
+              expiryDays <= 3 ? "bg-amber-50 border-amber-200 text-amber-600" :
+              "bg-emerald-50 border-emerald-200 text-emerald-700"
+            )}>
+              <CalendarDays className="w-4 h-4" />
+              {expiryDays < 0 ? '日期錯誤' : `${expiryDays} 天`}
+            </div>
+          </div>
         </div>
 
-        <Input label="購入日期" type="date" value={form.purchaseDate} onChange={e => setForm({...form, purchaseDate: e.target.value})} />
+        <Input
+          label="購入日期"
+          type="date"
+          value={form.purchaseDate}
+          onChange={e => setForm({ ...form, purchaseDate: e.target.value })}
+        />
 
-        <Button 
-          onClick={handleSubmit} 
-          className="w-full py-4 text-xl mt-4" 
-          disabled={!form.name.trim()}
+        <Input
+          label="有效期限"
+          type="date"
+          value={form.expiryDate}
+          onChange={e => { setForm({ ...form, expiryDate: e.target.value }); setError(null); }}
+        />
+
+        <Button
+          onClick={handleSubmit}
+          className="w-full py-4 text-xl mt-4"
+          disabled={!form.name.trim() || expiryDays < 0}
         >加入清單</Button>
       </div>
     </div>
