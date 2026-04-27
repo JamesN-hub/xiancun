@@ -1,5 +1,5 @@
 import { Refrigerator } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Button } from '../components/ui';
 
 export function LoginView({ onLogin }: { onLogin: () => void }) {

@@ -228,9 +228,14 @@ function App() {
     if (!user || !family) return;
     try {
       const familyRef = doc(db, 'families', family.id);
-      await updateDoc(familyRef, {
-        members: arrayRemove(user.uid)
-      });
+      if (family.members.length <= 1) {
+        // Last member — delete the family entirely
+        await deleteDoc(familyRef);
+      } else {
+        await updateDoc(familyRef, {
+          members: arrayRemove(user.uid)
+        });
+      }
       setView('dashboard');
     } catch (err) {
       handleFirestoreError(err, OperationType.UPDATE, 'families');
