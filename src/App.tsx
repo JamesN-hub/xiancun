@@ -16,7 +16,9 @@ import {
   updateDoc,
   serverTimestamp,
   orderBy,
-  getDocFromServer
+  getDocFromServer,
+  arrayUnion,
+  arrayRemove
 } from 'firebase/firestore';
 import { 
   Plus, 
@@ -208,17 +210,28 @@ function App() {
     if (!user) return;
     try {
       const familyRef = doc(db, 'families', familyId);
-      const familySnap = await getDoc(familyRef);
-      if (familySnap.exists()) {
-        const data = familySnap.data();
-        if (!data.members.includes(user.uid)) {
-          await updateDoc(familyRef, {
-            members: [...data.members, user.uid]
-          });
-        }
-      } else {
+      // We use arrayUnion to bypass the need to read the document first,
+      // since security rules might prevent non-members from reading.
+      await updateDoc(familyRef, {
+        members: arrayUnion(user.uid)
+      });
+    } catch (err: any) {
+      if (err.code === 'not-found' || err.message?.includes('No document to update')) {
         alert('找不到該家庭 ID');
+      } else {
+        handleFirestoreError(err, OperationType.UPDATE, 'families');
       }
+    }
+  };
+
+  const handleLeaveFamily = async () => {
+    if (!user || !family) return;
+    try {
+      const familyRef = doc(db, 'families', family.id);
+      await updateDoc(familyRef, {
+        members: arrayRemove(user.uid)
+      });
+      setView('dashboard');
     } catch (err) {
       handleFirestoreError(err, OperationType.UPDATE, 'families');
     }
@@ -441,7 +454,9 @@ function App() {
                 family={family} 
                 apiKey={apiKey} 
                 onSaveApiKey={saveApiKey} 
-                onLogout={logout} 
+                onLogout={logout}
+                onLeaveFamily={handleLeaveFamily}
+                isOwner={user.uid === family.ownerUid}
               />
             </motion.div>
           )}

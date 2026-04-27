@@ -46,8 +46,8 @@ export function ItemCard({ item, onDelete }: { item: FoodItem; onDelete: () => v
           </div>
         </div>
       </div>
-      <Button onClick={onDelete} variant="danger" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
-        <Trash2 className="w-4 h-4" />
+      <Button onClick={onDelete} variant="ghost" size="sm" className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors">
+        <Trash2 className="w-5 h-5" />
       </Button>
     </Card>
   );

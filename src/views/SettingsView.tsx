@@ -4,11 +4,13 @@ import { cn } from '../lib/utils';
 import { Button, Card, Input } from '../components/ui';
 import { Family } from '../types';
 
-export function SettingsView({ family, apiKey, onSaveApiKey, onLogout }: { 
+export function SettingsView({ family, apiKey, onSaveApiKey, onLogout, onLeaveFamily, isOwner }: { 
   family: Family; 
   apiKey: string; 
   onSaveApiKey: (key: string) => void;
   onLogout: () => void;
+  onLeaveFamily: () => void;
+  isOwner: boolean;
 }) {
   const [tempKey, setTempKey] = useState(apiKey);
   const [copied, setCopied] = useState(false);
@@ -41,6 +43,14 @@ export function SettingsView({ family, apiKey, onSaveApiKey, onLogout }: {
               {family.id}
             </code>
             {copied && <p className="text-xs text-emerald-600 mt-2 font-bold font-hand">已複製到剪貼簿！</p>}
+          </div>
+          <div className="pt-4 mt-2">
+            <Button onClick={onLeaveFamily} variant="danger" className="w-full py-2">
+              退出這家庭
+            </Button>
+            {isOwner && (
+              <p className="text-xs text-slate-400 text-center font-hand mt-2">您是這個家庭的建立者</p>
+            )}
           </div>
         </Card>
       </section>
