@@ -209,18 +209,16 @@ function App() {
   const handleJoinFamily = async (familyId: string) => {
     if (!user) return;
     try {
-      const familyRef = doc(db, 'families', familyId);
-      // We use arrayUnion to bypass the need to read the document first,
-      // since security rules might prevent non-members from reading.
+      const familyRef = doc(db, 'families', familyId.trim());
       await updateDoc(familyRef, {
         members: arrayUnion(user.uid)
       });
     } catch (err: any) {
       if (err.code === 'not-found' || err.message?.includes('No document to update')) {
-        alert('找不到該家庭 ID');
-      } else {
-        handleFirestoreError(err, OperationType.UPDATE, 'families');
+        throw new Error('找不到該家庭，請確認邀請碼是否正確');
       }
+      console.error('Join family error:', err);
+      throw new Error('加入失敗，請稍後再試');
     }
   };
 
